@@ -13,6 +13,7 @@ import io.ktor.features.*
 import io.ktor.freemarker.*
 import io.ktor.gson.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
@@ -37,15 +38,15 @@ fun Application.module(testing: Boolean = false) {
         gson()
     }
 
-    install(FreeMarker){
-        templateLoader = ClassTemplateLoader(this::class.java.classLoader,"templates")
+    install(FreeMarker) {
+        templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
     }
 
-    install(Authentication){
-        basic(name = "auth"){
+    install(Authentication) {
+        basic(name = "auth") {
             realm = "Ktor server"
             validate { credentials ->
-                if (credentials.password == "${credentials.name}123") User(credentials.name)else null
+                if (credentials.password == "${credentials.name}123") User(credentials.name) else null
             }
         }
     }
@@ -53,6 +54,11 @@ fun Application.module(testing: Boolean = false) {
     val db = InMemoryRepository()
 
     routing {
+        // For Static content
+        static("/static") {
+            resources("images")
+        }
+
         home()
         about()
         phrases(db)
