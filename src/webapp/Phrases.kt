@@ -2,10 +2,12 @@ package co.eware.webapp
 
 import co.eware.model.EmojiPhrase
 import co.eware.model.User
+import co.eware.redirect
 import co.eware.repository.Repository
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.freemarker.*
+import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -13,9 +15,14 @@ import java.lang.IllegalArgumentException
 
 const val PHRASES = "/phrases"
 
+@KtorExperimentalLocationsAPI
+@Location(PHRASES)
+class Phrases
+
+@KtorExperimentalLocationsAPI
 fun Route.phrases(db: Repository) {
     authenticate("auth") {
-        get(PHRASES) {
+        get<Phrases> {
             // Get the user from Call Object
             val user = call.authentication.principal as User
             val phrases = db.phrases()
@@ -29,7 +36,7 @@ fun Route.phrases(db: Repository) {
             )
         }
 
-        post(PHRASES) {
+        post<Phrases> {
             val params = call.receiveParameters()
             val action = params["action"] ?: throw IllegalArgumentException("Missing parameter: action")
             when (action) {
@@ -43,7 +50,7 @@ fun Route.phrases(db: Repository) {
                     db.add(EmojiPhrase(emoji, phrase))
                 }
             }
-            call.respondRedirect(PHRASES)
+            call.redirect(Phrases())
         }
     }
 }
