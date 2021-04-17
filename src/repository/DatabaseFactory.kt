@@ -1,6 +1,7 @@
 package co.eware.repository
 
 import co.eware.model.EmojiPhrases
+import co.eware.model.Users
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ object DatabaseFactory {
         Database.connect(hikari())
         transaction {
             SchemaUtils.create(EmojiPhrases)
+            SchemaUtils.create(Users)
 
 //            // Insert 2 dummy records
 //            EmojiPhrases.insert {

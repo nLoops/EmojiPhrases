@@ -21,36 +21,67 @@ class Phrases
 
 @KtorExperimentalLocationsAPI
 fun Route.phrases(db: Repository) {
-    authenticate("auth") {
-        get<Phrases> {
-            // Get the user from Call Object
-            val user = call.authentication.principal as User
-            val phrases = db.phrases()
-            call.respond(
-                FreeMarkerContent(
-                    "phrases.ftl", mapOf(
-                        "phrases" to phrases,
-                        "displayName" to user.displayName
-                    )
+    get<Phrases> {
+        // Get the user from Call Object
+        val user = call.authentication.principal as User
+        val phrases = db.phrases()
+        call.respond(
+            FreeMarkerContent(
+                "phrases.ftl", mapOf(
+                    "phrases" to phrases,
+                    "displayName" to user.displayName
                 )
             )
-        }
-
-        post<Phrases> {
-            val params = call.receiveParameters()
-            val action = params["action"] ?: throw IllegalArgumentException("Missing parameter: action")
-            when (action) {
-                "delete" -> {
-                    val id = params["id"] ?: throw IllegalArgumentException("Missing parameter: id")
-                    db.remove(id)
-                }
-                "add" -> {
-                    val emoji = params["emoji"] ?: throw IllegalArgumentException("Missing parameter: emoji")
-                    val phrase = params["phrase"] ?: throw IllegalArgumentException("Missing parameter: phrase")
-                    db.add(emoji, phrase)
-                }
-            }
-            call.redirect(Phrases())
-        }
+        )
     }
+
+    post<Phrases> {
+        val params = call.receiveParameters()
+        val action = params["action"] ?: throw IllegalArgumentException("Missing parameter: action")
+        when (action) {
+            "delete" -> {
+                val id = params["id"] ?: throw IllegalArgumentException("Missing parameter: id")
+                db.remove(id)
+            }
+            "add" -> {
+                val emoji = params["emoji"] ?: throw IllegalArgumentException("Missing parameter: emoji")
+                val phrase = params["phrase"] ?: throw IllegalArgumentException("Missing parameter: phrase")
+                db.add("", emoji, phrase)
+            }
+        }
+        call.redirect(Phrases())
+    }
+
+//    authenticate("auth") {
+//        get<Phrases> {
+//            // Get the user from Call Object
+//            val user = call.authentication.principal as User
+//            val phrases = db.phrases()
+//            call.respond(
+//                FreeMarkerContent(
+//                    "phrases.ftl", mapOf(
+//                        "phrases" to phrases,
+//                        "displayName" to user.displayName
+//                    )
+//                )
+//            )
+//        }
+//
+//        post<Phrases> {
+//            val params = call.receiveParameters()
+//            val action = params["action"] ?: throw IllegalArgumentException("Missing parameter: action")
+//            when (action) {
+//                "delete" -> {
+//                    val id = params["id"] ?: throw IllegalArgumentException("Missing parameter: id")
+//                    db.remove(id)
+//                }
+//                "add" -> {
+//                    val emoji = params["emoji"] ?: throw IllegalArgumentException("Missing parameter: emoji")
+//                    val phrase = params["phrase"] ?: throw IllegalArgumentException("Missing parameter: phrase")
+//                    db.add(emoji, phrase)
+//                }
+//            }
+//            call.redirect(Phrases())
+//        }
+//    }
 }

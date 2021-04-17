@@ -4,9 +4,7 @@ import co.eware.api.phrase
 import co.eware.model.User
 import co.eware.repository.DatabaseFactory
 import co.eware.repository.EmojiPhrasesRepository
-import co.eware.webapp.about
-import co.eware.webapp.home
-import co.eware.webapp.phrases
+import co.eware.webapp.*
 import freemarker.cache.ClassTemplateLoader
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -44,16 +42,19 @@ fun Application.module(testing: Boolean = false) {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
     }
 
-    install(Authentication) {
-        basic(name = "auth") {
-            realm = "Ktor server"
-            validate { credentials ->
-                if (credentials.password == "${credentials.name}123") User(credentials.name) else null
-            }
-        }
-    }
+// Basic Auth.
+//    install(Authentication) {
+//        basic(name = "auth") {
+//            realm = "Ktor server"
+//            validate { credentials ->
+//                if (credentials.password == "${credentials.name}123") User(credentials.name) else null
+//            }
+//        }
+//    }
 
     install(Locations)
+
+    val hashFunction = { s: String -> hash(s) }
 
     DatabaseFactory.init()
 
@@ -68,6 +69,9 @@ fun Application.module(testing: Boolean = false) {
         home()
         about()
         phrases(db)
+        signin(db, hashFunction)
+        signout()
+        signup(db, hashFunction)
 
         // API
         phrase(db)

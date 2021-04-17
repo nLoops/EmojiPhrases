@@ -1,0 +1,23 @@
+package co.eware
+
+import io.ktor.util.*
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
+import kotlin.text.toByteArray
+
+/**
+ * Created by Ahmed Ibrahim on 17,April,2021
+ */
+private val hashKey = hex(System.getenv("SECRET_KEY"))
+
+private val hmacKey = SecretKeySpec(hashKey, "HmacSHA1")
+
+fun hash(password: String): String {
+    val hmac = Mac.getInstance("HmacSHA1")
+    hmac.init(hmacKey)
+    return hex(hmac.doFinal(password.toByteArray(Charsets.UTF_8)))
+}
+
+private val userIdPattern = "[a-zA-Z0-9\\.]+".toRegex()
+
+internal fun userNameValid(userId: String) = userId.matches(userIdPattern)
