@@ -2,7 +2,8 @@ package co.eware
 
 import co.eware.api.phrase
 import co.eware.model.User
-import co.eware.repository.InMemoryRepository
+import co.eware.repository.DatabaseFactory
+import co.eware.repository.EmojiPhrasesRepository
 import co.eware.webapp.about
 import co.eware.webapp.home
 import co.eware.webapp.phrases
@@ -54,7 +55,9 @@ fun Application.module(testing: Boolean = false) {
 
     install(Locations)
 
-    val db = InMemoryRepository()
+    DatabaseFactory.init()
+
+    val db = EmojiPhrasesRepository()
 
     routing {
         // For Static content
@@ -74,7 +77,7 @@ fun Application.module(testing: Boolean = false) {
 const val API_VERSION = "/api/v1"
 
 @KtorExperimentalLocationsAPI
-suspend fun ApplicationCall.redirect(location: Any){
+suspend fun ApplicationCall.redirect(location: Any) {
     respondRedirect(application.locations.href(location))
 }
 
