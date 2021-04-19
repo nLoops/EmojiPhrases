@@ -1,7 +1,7 @@
 package co.eware
 
 import co.eware.api.login
-import co.eware.api.phrase
+import co.eware.api.phrasesApi
 import co.eware.model.EPSession
 import co.eware.model.User
 import co.eware.repository.DatabaseFactory
@@ -104,7 +104,7 @@ fun Application.module(testing: Boolean = false) {
 
         // API
         login(db, jwtServices)
-        phrase(db)
+        phrasesApi(db)
     }
 }
 
@@ -124,3 +124,4 @@ fun ApplicationCall.verifyCode(date: Long, user: User, code: String, hashFunctio
     securityCode(date, user, hashFunction) == code &&
             (System.currentTimeMillis() - date).let { it > 0 && it < TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS) }
 
+val ApplicationCall.apiUer get() = authentication.principal<User>()

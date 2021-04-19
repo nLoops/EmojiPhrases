@@ -29,7 +29,9 @@ class JwtServices {
 
     private fun expiresAt() =
         Date(System.currentTimeMillis() + 3_600_000 * 24)
-    // 24 hours  and => SEARCH for refresh token cause the course didn't cover it.
+    // 24 hours
+    // SEARCH for refresh token cause the course didn't cover it.
+    // here a link for refresh token https://stackoverflow.com/a/54378384
 
 
 }
