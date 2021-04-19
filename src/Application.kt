@@ -1,5 +1,6 @@
 package co.eware
 
+import co.eware.api.login
 import co.eware.api.phrase
 import co.eware.model.EPSession
 import co.eware.model.User
@@ -9,6 +10,7 @@ import co.eware.webapp.*
 import freemarker.cache.ClassTemplateLoader
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.auth.jwt.*
 import io.ktor.features.*
 import io.ktor.freemarker.*
 import io.ktor.gson.*
@@ -48,8 +50,8 @@ fun Application.module(testing: Boolean = false) {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
     }
 
-    install(Sessions){
-        cookie<EPSession>("SESSION"){
+    install(Sessions) {
+        cookie<EPSession>("SESSION") {
             transform(SessionTransportTransformerMessageAuthentication(hashKey))
         }
     }
@@ -71,6 +73,21 @@ fun Application.module(testing: Boolean = false) {
     DatabaseFactory.init()
 
     val db = EmojiPhrasesRepository()
+    val jwtServices = JwtServices()
+
+    install(Authentication) {
+        jwt("jwt") {
+            verifier(jwtServices.verifier)
+            realm = "emojiphrases app"
+            validate {
+                val payload = it.payload
+                val claim = payload.getClaim("id")
+                val claimString = claim.asString()
+                val user = db.userById(claimString)
+                user
+            }
+        }
+    }
 
     routing {
         // For Static content
@@ -80,12 +97,13 @@ fun Application.module(testing: Boolean = false) {
 
         home(db)
         about(db)
-        phrases(db,hashFunction)
+        phrases(db, hashFunction)
         signin(db, hashFunction)
         signout()
         signup(db, hashFunction)
 
         // API
+        login(db, jwtServices)
         phrase(db)
     }
 }
