@@ -1,6 +1,7 @@
 package co.eware
 
 import co.eware.api.phrase
+import co.eware.model.EPSession
 import co.eware.model.User
 import co.eware.repository.DatabaseFactory
 import co.eware.repository.EmojiPhrasesRepository
@@ -14,11 +15,16 @@ import io.ktor.gson.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.locations.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.sessions.*
+import java.net.URI
+import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@KtorExperimentalLocationsAPI
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
@@ -40,6 +46,12 @@ fun Application.module(testing: Boolean = false) {
 
     install(FreeMarker) {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+    }
+
+    install(Sessions){
+        cookie<EPSession>("SESSION"){
+            transform(SessionTransportTransformerMessageAuthentication(hashKey))
+        }
     }
 
 // Basic Auth.
@@ -66,9 +78,9 @@ fun Application.module(testing: Boolean = false) {
             resources("images")
         }
 
-        home()
-        about()
-        phrases(db)
+        home(db)
+        about(db)
+        phrases(db,hashFunction)
         signin(db, hashFunction)
         signout()
         signup(db, hashFunction)
@@ -84,4 +96,13 @@ const val API_VERSION = "/api/v1"
 suspend fun ApplicationCall.redirect(location: Any) {
     respondRedirect(application.locations.href(location))
 }
+
+fun ApplicationCall.referHost() = request.header(HttpHeaders.Referrer)?.let { URI.create(it).host }
+
+fun ApplicationCall.securityCode(date: Long, user: User, hashFunction: (String) -> String) =
+    hashFunction("$date:${user.userId}:${request.host()}:${referHost()}")
+
+fun ApplicationCall.verifyCode(date: Long, user: User, code: String, hashFunction: (String) -> String) =
+    securityCode(date, user, hashFunction) == code &&
+            (System.currentTimeMillis() - date).let { it > 0 && it < TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS) }
 

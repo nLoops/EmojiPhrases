@@ -8,7 +8,10 @@ import kotlin.text.toByteArray
 /**
  * Created by Ahmed Ibrahim on 17,April,2021
  */
-private val hashKey = hex(System.getenv("SECRET_KEY"))
+const val MIN_USER_ID_LENGTH = 4
+const val MIN_PASSWORD_LENGTH = 6
+
+val hashKey = hex(System.getenv("SECRET_KEY"))
 
 private val hmacKey = SecretKeySpec(hashKey, "HmacSHA1")
 
